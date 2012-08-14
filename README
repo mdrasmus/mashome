@@ -58,4 +58,7 @@ How it works:
    For example, AJAX calls could be used to fetch data from a
    third-party web server or even from the localhost.
 
-   
+A simple example using a generic stub genome browser can be seen here:
+
+  http://mattrasmus.com/mashome/genome-browser 
+
