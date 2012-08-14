@@ -14,7 +14,7 @@
 //===================================================================
 // misc functions
 
-// import script
+// import javascript script url
 function importScript(url, onLoad) {
     var e = document.createElement("script");
     e.setAttribute('type', 'text/javascript');
@@ -30,6 +30,7 @@ function importScript(url, onLoad) {
     document.body.appendChild(e);        
 }
 
+// import multiple javascript script urls
 function importScripts(urls, onLoad, serial) {
     var nwait = urls.length;
     
@@ -353,8 +354,11 @@ function HostBrowser () {
     // get the current genome view
     this.getView = function () {};
 
+    // set the genome view
+    this.setView = function (view) {};
+
     // returns true if genome view has changed since last call to getView()
-    this.hasViewChanged = function () { return false; }
+    this.hasViewChanged = function () { return false; };
 };
 
 
@@ -378,7 +382,7 @@ function UCSCBrowser () {
             return false;
         }
         return true;
-    }
+    };
 
     // returns true if host browser is detected
     this.isDetected = function () {
@@ -435,7 +439,7 @@ function GenericBrowser () {
             return false;
         }
         return true;
-    }
+    };
 
     // returns true if host browser is detected
     this.isDetected = function () {
@@ -452,6 +456,11 @@ function GenericBrowser () {
         lastPostext = postext;
         lastView = browser.parsePosition(postext);
         return lastView;
+    };
+
+    // set the genome view
+    this.setView = function (view) {
+        browser.goToView(view);
     };
 
     // returns true if genome view has changed since last call to getView()
