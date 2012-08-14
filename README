@@ -1,9 +1,59 @@
 
-  Mashome - Genome Browser Mashup library
-  Matt Rasmussen 2012
+Mashome - Genome Browser Mashup library
+Matt Rasmussen 2012
   
-  This library allows one to visualize *very* custom genome browser
-  tracks within a host genome browser web page (e.g. UCSC, Ensembl,
-  generic).  Custom tracks are are built and controlled using
-  javascript.  Data displayed within tracks can be fetched using AJAX.
+This library allows one to visualize *very* custom genome browser
+tracks within a host genome browser web page (e.g. UCSC, Ensembl,
+generic).  Custom tracks are are built and controlled using
+javascript.  Data displayed within tracks can be fetched using AJAX.
 
+
+Purpose:
+
+The purpose of this library is to provide a way to inject your own
+HTML elements into a web-based genome browser.  Mashome provides a
+simple interface for responding to view changes (moving and zooming
+along the chromosome) so that only a minimal amount of extra code is
+needed to create a custom track.  This library should be used in cases
+where a typical track (BED file, WIG file, etc) is not suitable for
+the information you wish to plot.  In general, one should be able to
+visually align any arbitrary plot next to a native genome browser
+track and use the existing genome browser's UI to navigate both the
+genome and one's plot.
+
+
+The library works as follows:
+
+1. First, a bookmarklet is used to inject into a third-party genome
+   browser (e.g. UCSC genome browser) the Mashome HTML element directly
+   below the "native" tracks.  This element will contain your own
+   *very* custom tracks.
+
+2. The Mashome interface includes a text input labeled "tracks URL:".  Simply
+   enter the URL of a javascript file hosted anywhere on the Internet and it
+   will be loaded by Mashome.  This javascript file should contain calls to
+   the mashome library that add custom tracks to the browser.
+
+3. Custom tracks can be additional UI elements, extra text displays, or 
+   graphical plots by HTML5's canvas element.  The data to display can be
+   fetch by any mechanism the user chooses.  For example, AJAX calls could be
+   used to fetch data from a third party web server or even from the localhost.
+
+
+Examples of very custom tracks:
+
+1. Plot a heatmap matrix aligned with native tracks.  If the columns
+   of the heatmap correspond to coordinates along the genome, then one
+   can easily compare values in the heatmap with other genomic
+   elements/values being displayed in native tracks.
+
+2. Display additional text information.  By registering callback
+   functions for mouse clicks and view changes, one can make a "track"
+   that displays extra text information (e.g. detailed information
+   about a gene/element or links to additional resources).
+
+3. Arbitrary/flexible plotting.  Using HTML5's canvas element, one can
+   create new types of plots that cannot be represented in existing track
+   formats (BED, WIG, etc).  For example, by listing to clicks on genomics
+   elements, one could plot a local genealogy or gene family.
+   
