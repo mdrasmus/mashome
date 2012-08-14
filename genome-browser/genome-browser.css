@@ -10,6 +10,11 @@ body {
   margin-bottom: 5px;
 }
 
+.title {
+  color: #777;
+  font-weight: bold;
+}
+
 #browser-border {
   width: 1024px;
   border: 0px;
@@ -72,4 +77,8 @@ input[name='browser_width'] {
   padding: 2px;
 }
 
+.explain {
+  width: 1024px;
+  margin: auto;
+}
 

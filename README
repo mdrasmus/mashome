@@ -36,25 +36,26 @@ Examples of very custom tracks:
 
 3. Arbitrary/flexible plotting.  Using HTML5's canvas element, one can
    create new types of plots that cannot be represented in existing track
-   formats (BED, WIG, etc).  For example, by listing to clicks on genomics
+   formats (BED, WIG, etc).  For example, by listening to clicks on genomics
    elements, one could plot a local genealogy or gene family.
 
 
 How it works:
 
-1. First, a bookmarklet is used to inject into a third-party genome
-   browser (e.g. UCSC genome browser) the Mashome HTML element directly
-   below the "native" tracks.  This element will contain your own
-   *very* custom tracks.
+1. First, a bookmarklet is used to inject into a web-based genome browser
+   (e.g. UCSC genome browser) the Mashome HTML element directly below
+   the "native" tracks.  This element will contain your own *very*
+   custom tracks.
 
 2. The Mashome interface includes a text input labeled "tracks URL:".  Simply
    enter the URL of a javascript file hosted anywhere on the Internet and it
    will be loaded by Mashome.  This javascript file should contain calls to
    the mashome library that add custom tracks to the browser.
 
-3. Custom tracks can be additional UI elements, extra text displays, or 
-   graphical plots by HTML5's canvas element.  The data to display can be
-   fetched by any mechanism the user chooses.  For example, AJAX calls could be
-   used to fetch data from a third party web server or even from the localhost.
+3. Custom tracks can be additional UI elements, extra text displays,
+   or dynamic graphical plots created by HTML5's canvas element.  The
+   data to display can be fetched by any mechanism the user chooses.
+   For example, AJAX calls could be used to fetch data from a
+   third-party web server or even from the localhost.
 
    
