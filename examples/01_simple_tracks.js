@@ -6,7 +6,7 @@
 var ruler = new mashome.RulerTrack({name: "ruler", 
                                     height: 20, 
                                     select: function (pos) {
-            alert("You clicked position " + ruler.view.chrom + ":" + pos); }});
+    alert("You clicked position " + ruler.view.chrom + ":" + pos); }});
 mashome.addTrack(ruler);
 
 
@@ -14,9 +14,9 @@ mashome.addTrack(ruler);
 var track1 = new mashome.Track({name: "track1",
                                 height: 50});
 track1.onViewChange = function (view) {
-        this.main.html("<b>current view is: " + 
-                       view.chrom + ":" + view.start + "-" + view.end + "</b>");
-    };
+    this.main.html("<b>current view is: " + 
+                   view.chrom + ":" + view.start + "-" + view.end + "</b>");
+};
 mashome.addTrack(track1);
 
 
@@ -41,8 +41,7 @@ track2.onViewChange = function (view) {
     // translate coordinate system so that we can draw in terms of base pairs
     this.beginTransform(view);
     
-    // draw tick marks every 'step' bases
-    c.strokeStyle = "#080";
+    // draw each region in regions array
     c.fillStyle= "#5f5";
     c.lineWidth /= scale;
     c.beginPath();

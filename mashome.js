@@ -362,6 +362,7 @@ function HostBrowser () {
 };
 
 
+// Interface for UCSC Browser
 function UCSCBrowser () {
     this.HostBrowser = HostBrowser;
     this.HostBrowser();
@@ -413,7 +414,7 @@ function UCSCBrowser () {
 UCSCBrowser.prototype = new HostBrowser;
 
 
-
+// Interface for generic stub browser
 function GenericBrowser () {
     this.HostBrowser = HostBrowser;
     this.HostBrowser();
@@ -487,6 +488,7 @@ function Toolbar(urlCookie) {
             "<div id='mashome-toolbar'>" +
             "<form id='mashome-toolbar-form'>" +
             "tracks URL: <input id='mashome-url' type='text'></input>" +
+            "<span id='mashome-close' style='float:right'><a style='color: black' href='javascript: mashome.close()'>close</a></span>" +
             "</form></div>");
         this.elm.css({"background-color": "#eee",
                       "border-top": "1px solid #ccc",
@@ -498,6 +500,9 @@ function Toolbar(urlCookie) {
                 that.onSubmit(e)});
 
         this.initUrl();
+
+        this.closeElm = this.elm.find("#mashome-close");
+        this.closeElm.css('padding', '5px');
         
         return this.elm;
     }
@@ -528,7 +533,7 @@ function Toolbar(urlCookie) {
 
 // main mashome object
 var mashome = {
-    init: function() {
+    init: function () {
 
         // mashome variables
         this.tracks = [];
@@ -564,6 +569,13 @@ var mashome = {
         
         // ensure loop is active
         this.startLoop();
+    },
+
+    // remove mashome UI from host browser
+    close: function () {
+        this.clearTracks();
+        this.elm.remove();
+        delete window.mashome;
     },
 
     // auto-detect which host browser is present
