@@ -1,6 +1,9 @@
 
 Mashome - Genome Browser Mashup library
 Matt Rasmussen 2012
+http://mattrasmus.com/mashome
+rasmus@alum.mit.edu
+
   
 This library allows one to visualize *very* custom genome browser
 tracks within a host genome browser web page (e.g. UCSC, Ensembl,
