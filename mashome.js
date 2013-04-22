@@ -131,6 +131,7 @@ function Track(options) {
     this.elm =  $("<div></div>");
     this.elm.css({"overflow": "hidden",
                   "width": "100%"});
+    this.width = 0;
     this.sidebarWidth = 0;
     this.mainWidth = 0;
 
@@ -149,6 +150,7 @@ function Track(options) {
     this.create = function () {
         this.elm.empty();
         
+        this.width = this.mashome.width;
         this.sidebarWidth = this.mashome.sidebarWidth;
         this.mainWidth = this.mashome.mainWidth;
         
@@ -492,7 +494,9 @@ function Toolbar(urlCookie) {
             "</form></div>");
         this.elm.css({"background-color": "#eee",
                       "border-top": "1px solid #ccc",
-                      "padding": "1px"});
+                      "padding": "1px",
+                      "padding-left": "20px",
+                      "text-align": "left"});
         this.elm.find("#mashome-url").css("width", 400);
         
         this.urlInput = this.elm.find("#mashome-url");
@@ -538,6 +542,7 @@ var mashome = {
         // mashome variables
         this.tracks = [];
         this.config = window.mashomeConfig;
+        this.tracksScript = "";
 
         // auto-detect host genome browser
         this.defaultBrowsers = [UCSCBrowser, GenericBrowser];
@@ -687,7 +692,12 @@ var mashome = {
 
     loadTrackScript: function (url, onLoad) {
         this.clearTracks();
+        this.tracksScript = url;
         importScript(url, onLoad);
+    },
+
+    reloadTrackScript: function (onLoad) {
+        this.loadTrackScript(this.tracksScript, onLoad);
     },
     
 
