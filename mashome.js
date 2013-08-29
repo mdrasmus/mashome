@@ -68,6 +68,24 @@ function importScripts(urls, onLoad, serial) {
 }
 
 
+// jQuery fallback
+function Callbacks() {
+    this.callbacks = [];
+    this.add = function (func) {
+        this.callbacks.push(func);
+    };
+    this.remove = function (func) {
+        var i = this.callbacks.indexOf(func);
+        this.callbacks.splice(i, 1);
+    };
+    this.fire = function() {
+        for (var i=0; i<this.callbacks.length; i++) {
+            this.callbacks[i].apply(null, arguments);
+        }
+    }
+}
+
+
 //===================================================================
 // cookies
 
@@ -604,6 +622,9 @@ var mashome = {
                 this.hostTracks.after(this.create());
         }
 
+        // setup callbacks
+        this.onTracksChanged = new Callbacks();
+
         // check for initial url
         var url = this.toolbar.getUrl();
         if (url)
@@ -710,6 +731,7 @@ var mashome = {
         var view = this.getView();
         track.onAddTrack(view);
         track.onViewChange(view);
+        this.onTracksChanged.fire("add", track);
         return track;
     },
 
@@ -727,6 +749,7 @@ var mashome = {
         var view = this.getView();
         track.onAddTrack(view);
         track.onViewChange(view);
+        this.onTracksChanged.fire("add", track);
         return track;
     },
 
@@ -746,11 +769,12 @@ var mashome = {
         for (var i in this.tracks) {
             if (this.tracks[i] == track) {
                 this.tracks.splice(i, 1);
-                return;
+                break;
             }
         }
 
         track.onRemoveTrack(view);
+        this.onTracksChanged.fire("remove", track);
         return track;
     },
 
@@ -839,6 +863,7 @@ var mashome = {
     importScripts: importScripts,
     getCookie: getCookie,
     setCookie: setCookie,
+    Callbacks: Callbacks
 
 };
 
