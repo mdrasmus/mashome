@@ -403,6 +403,9 @@ function UCSCBrowser () {
         // cache view
         lastPostext = postext;
         lastView = window.parsePosition(postext);
+
+        // convert to 0-index
+        lastView.start -= 1;
         return lastView;
     };
 
