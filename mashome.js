@@ -148,19 +148,32 @@ function Track(options) {
 
     // create default track layout
     this.create = function () {
+        var that = this;
         this.elm.empty();
 
         this.width = this.mashome.width;
         this.sidebarWidth = this.mashome.sidebarWidth;
         this.mainWidth = this.mashome.mainWidth;
 
-        this.sidebar = $("<div></div>");
+        this.sidebar = $("<div tabindex='0'></div>");
         this.sidebar.text(this.name);
         this.sidebar.css({"width": this.sidebarWidth -  1,
                           "background-color": "#fff",
                           "border-right": "solid 1px #fcc",
                           "height": this.height,
-                          "float": "left"});
+                          "float": "left",
+                          "position": "relative"});
+        this.sidebar.focus(function (event) { that.onTrackSelect(true); });
+        this.sidebar.blur(function (event) { that.onTrackSelect(false); });
+
+        this.closeButton = $("<span class='close'>\u00D7</span>");
+        this.closeButton.css({"position": "absolute",
+                              "padding-left": "2px",
+                              "font-size": "15px",
+                              "top": 0,
+                              "left": 0});
+        this.closeButton.click(function (event) { that.remove() });
+
         this.main = $("<div></div>");
         this.main.css({"width": this.mainWidth,
                        "background-color": "#fff",
@@ -169,6 +182,8 @@ function Track(options) {
 
         this.elm.append(this.sidebar);
         this.elm.append(this.main);
+
+        return this.elm;
     };
 
     // change the height of a track
@@ -180,14 +195,33 @@ function Track(options) {
             this.sidebar.css("height", height);
     };
 
+    this.remove = function () {
+        this.mashome.removeTrack(this);
+    };
+
     //-------------------------------------------
     // callbacks
 
     // callback for when track is added to mashome
-    this.onAddTrack = function(view) {};
+    this.onAddTrack = function (view) {};
+
+    // callback for when track is removed from mashome
+    this.onRemoveTrack = function (view) {};
 
     // callback for when genomic position changes
-    this.onViewChange = function(view) {};
+    this.onViewChange = function (view) {};
+
+    // callback for when track changes selection
+    this.onTrackSelect =  function (selected) {
+        var that = this;
+        if (selected) {
+            this.sidebar.css({"background-color": "#ccf"});
+            this.sidebar.append(this.closeButton);
+        } else {
+            this.sidebar.css({"background-color": "#fff"});
+            this.closeButton.remove();
+        }
+    };
 };
 
 
@@ -254,8 +288,8 @@ function RulerTrack(options) {
 
         this.cursor = $("<div></div>");
         this.cursor.css({"width": "0px",
-                         "height": this.height - 2,
-                         "border": "1px solid #f00",
+                         "height": this.height,
+                         "border-left": "1px solid #f00",
                          "position": "absolute",
                          "top": 0,
                          "left": this.mainWidth / 2});
@@ -676,6 +710,7 @@ var mashome = {
         var view = this.getView();
         track.onAddTrack(view);
         track.onViewChange(view);
+        return track;
     },
 
     insertTrack: function (index, track) {
@@ -683,7 +718,7 @@ var mashome = {
         track.mashome = this;
 
         // add track
-        this.tracks.slice(index, 0, [track]);
+        this.tracks.splice(index, 0, track);
 
         // add element
         this.tracksElm.children().eq(index).before(track.create());
@@ -692,15 +727,31 @@ var mashome = {
         var view = this.getView();
         track.onAddTrack(view);
         track.onViewChange(view);
+        return track;
+    },
+
+    insertTrackBefore: function (indexTrack, track) {
+        return this.insertTrack(indexTrack.elm.index(), track);
+    },
+
+    insertTrackAfter: function (indexTrack, track) {
+        return this.insertTrack(indexTrack.elm.index() + 1, track);
     },
 
     removeTrack: function (track) {
+        // remove from dom
+        track.elm.remove();
+
+        // remove from tracks array
         for (var i in this.tracks) {
             if (this.tracks[i] == track) {
                 this.tracks.splice(i, 1);
                 return;
             }
         }
+
+        track.onRemoveTrack(view);
+        return track;
     },
 
     clearTracks: function () {
