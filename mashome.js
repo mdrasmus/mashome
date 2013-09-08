@@ -6,7 +6,7 @@
   tracks within a host genome browser web page (e.g. UCSC, Ensembl,
   generic).  Custom tracks are are built and controlled using
   javascript.  Data displayed within tracks can be fetched using AJAX.
-  
+
 */
 
 (function (window) {
@@ -26,14 +26,14 @@ function importScript(url, onLoad) {
         else
             e.addEventListener("load", onLoad, false);
     }
-    
-    document.body.appendChild(e);        
+
+    document.body.appendChild(e);
 }
 
 // import multiple javascript script urls
 function importScripts(urls, onLoad, serial) {
     var nwait = urls.length;
-    
+
     if (nwait == 0) {
         if (onLoad)
             onLoad();
@@ -62,21 +62,39 @@ function importScripts(urls, onLoad, serial) {
             if (nwait == 0 && onLoad)
                 onLoad();
         }
-    
+
         for (var i in urls)
             importScript(urls[i], onLoadScript);
     }
 }
 
 
+// jQuery fallback
+function Callbacks() {
+    this.callbacks = [];
+    this.add = function (func) {
+        this.callbacks.push(func);
+    };
+    this.remove = function (func) {
+        var i = this.callbacks.indexOf(func);
+        this.callbacks.splice(i, 1);
+    };
+    this.fire = function() {
+        for (var i=0; i<this.callbacks.length; i++) {
+            this.callbacks[i].apply(null, arguments);
+        }
+    }
+}
+
+
 //===================================================================
 // cookies
-    
+
 function setCookie(c_name, value, exdays)
 {
     var exdate = new Date();
     exdate.setDate(exdate.getDate() + exdays);
-    var c_value = escape(value) + ((exdays==null) ? "" : 
+    var c_value = escape(value) + ((exdays==null) ? "" :
                                        "; expires=" + exdate.toUTCString());
     document.cookie = c_name + "=" + c_value;
 }
@@ -118,10 +136,10 @@ if (window.mashome) {
 if (!window.mashomeConfig)
     window.mashomeConfig = {};
 
-    
+
 //=====================================================================
 // Tracks
-    
+
 // base Track class
 // options:
 //   name   -- track display name
@@ -142,36 +160,51 @@ function Track(options) {
         options.name = "user track";
     if (typeof options.height == "undefined")
         options.height = 100;
-    
+
     this.name = options.name;
     this.height = options.height;
-        
-        
+
+
     // create default track layout
     this.create = function () {
+        var that = this;
         this.elm.empty();
-        
+
         this.width = this.mashome.width;
         this.sidebarWidth = this.mashome.sidebarWidth;
         this.mainWidth = this.mashome.mainWidth;
-        
-        this.sidebar = $("<div></div>");
+
+        this.sidebar = $("<div tabindex='0'></div>");
         this.sidebar.text(this.name);
         this.sidebar.css({"width": this.sidebarWidth -  1,
                           "background-color": "#fff",
                           "border-right": "solid 1px #fcc",
                           "height": this.height,
-                          "float": "left"});
+                          "float": "left",
+                          "position": "relative"});
+        this.sidebar.focus(function (event) { that.onTrackSelect(true); });
+        this.sidebar.blur(function (event) { that.onTrackSelect(false); });
+
+        this.closeButton = $("<span class='close'>\u00D7</span>");
+        this.closeButton.css({"position": "absolute",
+                              "padding-left": "2px",
+                              "font-size": "15px",
+                              "top": 0,
+                              "left": 0});
+        this.closeButton.click(function (event) { that.remove() });
+
         this.main = $("<div></div>");
         this.main.css({"width": this.mainWidth,
                        "background-color": "#fff",
                        "height": this.height,
                        "float": "left"});
-            
+
         this.elm.append(this.sidebar);
         this.elm.append(this.main);
+
+        return this.elm;
     };
-    
+
     // change the height of a track
     this.setHeight = function (height) {
         this.height = height;
@@ -181,16 +214,35 @@ function Track(options) {
             this.sidebar.css("height", height);
     };
 
+    this.remove = function () {
+        this.mashome.removeTrack(this);
+    };
+
     //-------------------------------------------
     // callbacks
 
     // callback for when track is added to mashome
-    this.onAddTrack = function(view) {};
-        
+    this.onAddTrack = function (view) {};
+
+    // callback for when track is removed from mashome
+    this.onRemoveTrack = function (view) {};
+
     // callback for when genomic position changes
-    this.onViewChange = function(view) {};  
+    this.onViewChange = function (view) {};
+
+    // callback for when track changes selection
+    this.onTrackSelect =  function (selected) {
+        var that = this;
+        if (selected) {
+            this.sidebar.css({"background-color": "#ccf"});
+            this.sidebar.append(this.closeButton);
+        } else {
+            this.sidebar.css({"background-color": "#fff"});
+            this.closeButton.remove();
+        }
+    };
 };
-   
+
 
 // basic ruler track
 // options:
@@ -201,11 +253,11 @@ function RulerTrack(options) {
     // call super
     this.Track = Track;
     this.Track(options);
-    
+
     // callback for when a region is clicked
     this.onSelect = options.select;
-    
-        
+
+
     // display the current position
     this.showPosition = function (pos, hover) {
         this.posText.text(this.mashome.positionToString(pos+1));
@@ -222,7 +274,7 @@ function RulerTrack(options) {
             base = this.selectedPos;
         else
             this.selectedPos = base;
-        
+
         var x = this.mashome.positionToPixel(base, this.view);
         this.cursor.css("left", x);
     };
@@ -239,7 +291,7 @@ function RulerTrack(options) {
 
         this.main.css({"border-bottom": "1px solid #555",
                        "border-top": "1px solid #555",
-                       "background-color": "#eee", 
+                       "background-color": "#eee",
                        "position": "relative",
                        "overflow": "hidden",
                        "font-size": fontSize + "px"});
@@ -255,29 +307,29 @@ function RulerTrack(options) {
 
         this.cursor = $("<div></div>");
         this.cursor.css({"width": "0px",
-                         "height": this.height - 2,
-                         "border": "1px solid #f00",
+                         "height": this.height,
+                         "border-left": "1px solid #f00",
                          "position": "absolute",
                          "top": 0,
                          "left": this.mainWidth / 2});
         this.main.append(this.cursor);
         this.setCursor();
     };
-    
+
     // callback for when genomic position changes
     this.onViewChange = function (view) {
         this.view = view;
         this.showPosition(this.selectedPos);
         this.setCursor();
     };
-    
+
     //----------------------------------------------
     // mouse events
-        
+
     this.onClick = function (event) {
         var x = event.pageX - this.main.position().left;
         var p = this.mashome.pixelToPosition(x, this.view);
-        
+
         this.showPosition(p);
         this.setCursor(p);
         this.onSelect(p);
@@ -288,7 +340,7 @@ function RulerTrack(options) {
         var p = this.mashome.pixelToPosition(x, this.view);
         this.showPosition(p, true);
     };
-        
+
     this.onMouseOut = function (event) {
         this.showPosition(this.selectedPos);
     };
@@ -304,7 +356,7 @@ function CanvasTrack(options) {
     // call super
     this.Track = Track;
     this.Track(options);
-        
+
     this.onAddTrack = function (view) {
         this.canvas = $("<canvas></canvas>");
         this.canvas.attr("width", this.mainWidth);
@@ -313,7 +365,7 @@ function CanvasTrack(options) {
 
         this.main.append(this.canvas);
     };
-        
+
     this.beginTransform = function(view) {
         var c = this.ctx;
         var scale = this.mainWidth / (view.end - view.start);
@@ -322,15 +374,15 @@ function CanvasTrack(options) {
         c.save();
         c.scale(scale, 1);
         c.translate(-view.start, 0);
-        c.lineWidth /= scale;            
+        c.lineWidth /= scale;
     };
-    
+
     this.endTransform = function() {
         this.ctx.restore();
     }
 }
 CanvasTrack.prototype = new Track;
-    
+
 
 
 //=====================================================================
@@ -340,7 +392,7 @@ CanvasTrack.prototype = new Track;
 // view = {chrom: "chr1", start: 1, end: 100};
 
 function HostBrowser () {
-    
+
     // initializes HostBrowser information
     this.init = function () {
         this.tracks = null;
@@ -373,7 +425,7 @@ function UCSCBrowser () {
     var imgTableId = "#imgTbl";
     var lastPostext = null;
     var lastView = null;
-    
+
     // initializes HostBrowser information
     this.init = function () {
         // get UCSC variables
@@ -394,13 +446,13 @@ function UCSCBrowser () {
                 window.hgTracks &&
                 window.genomePos);
     };
-    
+
     // returns current genome view
     this.getView = function () {
         var postext = window.genomePos.get();
         if (postext == lastPostext)
             return lastView;
-        
+
         // cache view
         lastPostext = postext;
         lastView = window.parsePosition(postext);
@@ -431,7 +483,7 @@ function GenericBrowser () {
     var lastPostext = null;
     var lastView = {"chrom": "chr", "start": 0, "end": 1000};
     var browser = null;
-    
+
     // initializes HostBrowser information
     this.init = function () {
         // get browser variables
@@ -452,13 +504,13 @@ function GenericBrowser () {
     this.isDetected = function () {
         return $(browserId).length > 0 && window.browser;
     };
-    
+
     // returns current genome view
     this.getView = function () {
         var postext = browser.viewtext;
         if (postext == lastPostext)
             return lastView;
-        
+
         // cache view
         lastPostext = postext;
         lastView = browser.parsePosition(postext);
@@ -478,17 +530,17 @@ function GenericBrowser () {
 GenericBrowser.prototype = new HostBrowser;
 
 
-    
+
 //=====================================================================
 // mashome
 
 // mashome toolbar
 function Toolbar(urlCookie) {
     var that = this;
-    
+
     this.urlCookie = urlCookie;
     this.onUrlChange = null;
-    
+
     this.create = function() {
         this.elm = $(
             "<div id='mashome-toolbar'>" +
@@ -502,7 +554,7 @@ function Toolbar(urlCookie) {
                       "padding-left": "20px",
                       "text-align": "left"});
         this.elm.find("#mashome-url").css("width", 400);
-        
+
         this.urlInput = this.elm.find("#mashome-url");
         this.elm.find("#mashome-toolbar-form").submit(function(e){
                 that.onSubmit(e)});
@@ -511,7 +563,7 @@ function Toolbar(urlCookie) {
 
         this.closeElm = this.elm.find("#mashome-close");
         this.closeElm.css('padding', '5px');
-        
+
         return this.elm;
     }
 
@@ -521,7 +573,7 @@ function Toolbar(urlCookie) {
             this.urlInput.val(url);
         }
     }
-    
+
     this.onSubmit = function (event) {
         event.preventDefault();
 
@@ -561,21 +613,24 @@ var mashome = {
             return;
         if (!this.configHostBrowser())
             return;
-            
+
         // setup gui
         if (!this.elm) {
-            if (this.config.tracksPosition == "before") 
+            if (this.config.tracksPosition == "before")
                 this.hostTracks.before(this.create());
-            else 
+            else
                 // default
                 this.hostTracks.after(this.create());
         }
+
+        // setup callbacks
+        this.onTracksChanged = new Callbacks();
 
         // check for initial url
         var url = this.toolbar.getUrl();
         if (url)
             this.loadTrackScript(url);
-        
+
         // ensure loop is active
         this.startLoop();
     },
@@ -597,7 +652,7 @@ var mashome = {
             if (browser.isDetected())
                 return browser;
         }
-        
+
         alert("NONE");
 
         return null;
@@ -607,7 +662,7 @@ var mashome = {
     configHostBrowser: function () {
         if (!this.hostBrowser.init())
             return false;
-        
+
         this.hostTracks = this.hostBrowser.tracks;
         this.width = this.hostBrowser.width;
         this.sidebarWidth = this.hostBrowser.sidebarWidth;
@@ -619,7 +674,7 @@ var mashome = {
     // create GUI
     create: function () {
         var that = this;
-            
+
         this.elm = $("<div id='mashome'></div>");
         this.elm.css({"border": "solid 1px black",
                       "width": this.width,
@@ -629,23 +684,23 @@ var mashome = {
         this.tracksElm = $("<div id='mashome-track'></div>");
         this.tracksElm.css({"background-color": "white"});
         this.elm.append(this.tracksElm);
-            
+
         // create toolbar
         this.toolbar = new Toolbar(urlCookie);
-        this.toolbar.onUrlChange = function (url) { 
+        this.toolbar.onUrlChange = function (url) {
             that.loadTrackScript(url); };
         this.elm.append(this.toolbar.create());
-            
+
         return this.elm;
     },
 
     //============================================================
     // main loop
-        
+
     startLoop: function() {
         var that = this;
         if (!this.updateId)
-            this.updateId = setInterval(function() {that.update();}, 
+            this.updateId = setInterval(function() {that.update();},
                                         updateInterval);
     },
 
@@ -666,27 +721,62 @@ var mashome = {
     addTrack: function (track) {
         // init track variables
         track.mashome = this;
-        
+
         // add track
         this.tracks.push(track);
-        
+
         // add element
-        track.create();
-        this.tracksElm.append(track.elm);
-        
+        this.tracksElm.append(track.create());
+
         // notify track
         var view = this.getView();
         track.onAddTrack(view);
         track.onViewChange(view);
+        this.onTracksChanged.fire("add", track);
+        return track;
+    },
+
+    insertTrack: function (index, track) {
+        // init track variables
+        track.mashome = this;
+
+        // add track
+        this.tracks.splice(index, 0, track);
+
+        // add element
+        this.tracksElm.children().eq(index).before(track.create());
+
+        // notify track
+        var view = this.getView();
+        track.onAddTrack(view);
+        track.onViewChange(view);
+        this.onTracksChanged.fire("add", track);
+        return track;
+    },
+
+    insertTrackBefore: function (indexTrack, track) {
+        return this.insertTrack(indexTrack.elm.index(), track);
+    },
+
+    insertTrackAfter: function (indexTrack, track) {
+        return this.insertTrack(indexTrack.elm.index() + 1, track);
     },
 
     removeTrack: function (track) {
+        // remove from dom
+        track.elm.remove();
+
+        // remove from tracks array
         for (var i in this.tracks) {
             if (this.tracks[i] == track) {
                 this.tracks.splice(i, 1);
-                return;
+                break;
             }
         }
+
+        track.onRemoveTrack(view);
+        this.onTracksChanged.fire("remove", track);
+        return track;
     },
 
     clearTracks: function () {
@@ -703,7 +793,7 @@ var mashome = {
     reloadTrackScript: function (onLoad) {
         this.loadTrackScript(this.tracksScript, onLoad);
     },
-    
+
 
     // builtin track classes
     Track: Track,
@@ -712,17 +802,17 @@ var mashome = {
 
     //===========================================================
     // callbacks
-    
+
     onViewChange: function (view) {
         // notify all tracks of view change
         for (var i in this.tracks)
             this.tracks[i].onViewChange(view);
     },
-    
+
 
     //============================================================
     // view and position functions
-    
+
     getView: function () {
         return this.hostBrowser.getView();
     },
@@ -730,7 +820,7 @@ var mashome = {
     hasViewChanged: function () {
         return this.hostBrowser.hasViewChanged();
     },
-        
+
     pixelToPosition: function (x, view) {
         if (!view)
             view = this.getView();
@@ -762,18 +852,19 @@ var mashome = {
     },
 
     viewToString: function(view) {
-        return view.chrom + ":" + this.positionToString(view.start+1) + "-" + 
+        return view.chrom + ":" + this.positionToString(view.start+1) + "-" +
         this.positionToString(view.end);
     },
-    
-    
+
+
     //==========================================================
     // misc functions
-    
+
     importScript: importScript,
     importScripts: importScripts,
     getCookie: getCookie,
     setCookie: setCookie,
+    Callbacks: Callbacks
 
 };
 
