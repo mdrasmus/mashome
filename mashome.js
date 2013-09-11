@@ -181,6 +181,7 @@ function Track(options) {
                           "border-right": "solid 1px #fcc",
                           "height": this.height,
                           "float": "left",
+                          "text-align": "center",
                           "position": "relative"});
         this.sidebar.focus(function (event) { that.onTrackSelect(true); });
         this.sidebar.blur(function (event) { that.onTrackSelect(false); });
