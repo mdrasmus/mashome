@@ -781,7 +781,7 @@ var mashome = {
             }
         }
 
-        track.onRemoveTrack(view);
+        track.onRemoveTrack(this.getView());
         this.onTracksChanged.fire("remove", track);
         return track;
     },
