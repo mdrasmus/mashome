@@ -15,6 +15,16 @@ body {
   font-weight: bold;
 }
 
+.title a:link, .title a:visited {
+  color: #777;
+  text-decoration: none;
+}
+
+.title a:hover {
+  color: #77f;
+  text-decoration: none;
+}
+
 #browser-border {
   width: 1024px;
   border: 0px;
@@ -38,7 +48,7 @@ body {
 }
 
 #sidebar {
-  width: 200px;
+  width: 150px;
 }
 
 input {
@@ -56,9 +66,8 @@ input[name='browser_width'] {
 }
 
 .button {
-  padding: 2px;
+  padding: 2px 4px 2px 4px;
   width: 35px;
-  height: 18px;
   display: inline-block;
   background-color: #dde;
   border-bottom: 1px solid #555;
@@ -81,4 +90,3 @@ input[name='browser_width'] {
   width: 1024px;
   margin: auto;
 }
-
