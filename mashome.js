@@ -367,6 +367,12 @@ function CanvasTrack(options) {
         this.main.append(this.canvas);
     };
 
+    this.superSetHeight = this.setHeight;
+    this.setHeight = function(height) {
+        this.superSetHeight(height);
+        this.canvas.attr("height", this.height);
+    };
+
     this.beginTransform = function(view) {
         var c = this.ctx;
         var scale = this.mainWidth / (view.end - view.start);
